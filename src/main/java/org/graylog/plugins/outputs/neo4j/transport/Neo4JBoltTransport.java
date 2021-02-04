@@ -1,18 +1,22 @@
 package org.graylog.plugins.outputs.neo4j.transport;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.graylog.plugins.outputs.neo4j.Neo4jOutput;
 import org.graylog2.plugin.Message;
 import org.graylog2.plugin.configuration.Configuration;
 import org.graylog2.plugin.outputs.MessageOutputConfigurationException;
-import org.neo4j.driver.v1.*;
-import org.neo4j.driver.v1.exceptions.ClientException;
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.exceptions.ClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by dev on 16/08/16.
@@ -92,22 +96,12 @@ public class Neo4JBoltTransport implements INeo4jTransport {
     }
 
     @Override
-    public void send(Message message) throws InterruptedException {
+    public void send(Message message) {
 
-        HashMap<String, Object> convertedFields = new HashMap<String, Object>(){};
+        HashMap<String, Object> convertedFields = new HashMap<>();
+        message.getFields().forEach((key, value) -> convertedFields.put(key, String.valueOf(value)));
 
-        for (String field : fields){
-            if (message.hasField(field)) {
-                Object valueForField = message.getField(field);
-                convertedFields.put(field, String.valueOf(valueForField));
-            }
-            else
-            {
-                convertedFields.put(field, null);
-            }
-        }
-            postQuery(parsedCreateQery, convertedFields);
-
+        postQuery(parsedCreateQery, convertedFields);
     }
 
 
